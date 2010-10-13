@@ -68,22 +68,24 @@
 - (void)drawRect: (NSRect)rect
 {
     [super drawRect: rect];
+
+	CGFloat		scaleFactor = [self bounds].size.height / 768.0;
 	
 	NS_DURING
 		NSDictionary*	bigAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
-										[NSFont boldSystemFontOfSize: 24], NSFontAttributeName,
+										[NSFont boldSystemFontOfSize: 24 * scaleFactor], NSFontAttributeName,
 										[NSColor whiteColor], NSForegroundColorAttributeName,
 										nil];
 		NSDictionary*	smAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
-										[NSFont boldSystemFontOfSize: 18], NSFontAttributeName,
+										[NSFont boldSystemFontOfSize: 18 * scaleFactor], NSFontAttributeName,
 										[NSColor whiteColor], NSForegroundColorAttributeName,
 										nil];
 		NSDictionary*	tinyAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
-										[NSFont systemFontOfSize: 18], NSFontAttributeName,
+										[NSFont systemFontOfSize: 18 * scaleFactor], NSFontAttributeName,
 										[NSColor whiteColor], NSForegroundColorAttributeName,
 										nil];
 		NSDictionary*	paleAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
-										[NSFont systemFontOfSize: 18], NSFontAttributeName,
+										[NSFont systemFontOfSize: 18 * scaleFactor], NSFontAttributeName,
 										[[NSColor lightGrayColor] colorWithAlphaComponent: 0.7], NSForegroundColorAttributeName,
 										nil];
 		
@@ -92,17 +94,17 @@
 		if( [self currTrackArt] )
 		{
 			desiredBox.size = [[self currTrackArt] size];
-			desiredBox.size.width *= (330.0f / desiredBox.size.height);
-			desiredBox.size.height = 330.0f;
+			desiredBox.size.width *= ((330.0f * scaleFactor) / desiredBox.size.height);
+			desiredBox.size.height = (330.0f * scaleFactor);
 			[[self currTrackArt] drawInRect: desiredBox fromRect: NSZeroRect operation: NSCompositeSourceAtop fraction: 1.0];
 		}
 		
-		[currTrackName drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + 390.0f) withAttributes: bigAttrs];
-		[currTrackArtist drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + 370.0f) withAttributes: smAttrs];
-		[currTrackAlbum drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + 340.0f) withAttributes: tinyAttrs];
+		[currTrackName drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (390.0f * scaleFactor)) withAttributes: bigAttrs];
+		[currTrackArtist drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (370.0f * scaleFactor)) withAttributes: smAttrs];
+		[currTrackAlbum drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (340.0f * scaleFactor)) withAttributes: tinyAttrs];
 		
 		// Indicate playback progress:
-		NSRect		progressBox = NSMakeRect(NSMinX(desiredBox), NSMinY(desiredBox) -24, desiredBox.size.width, 12);
+		NSRect		progressBox = NSMakeRect(NSMinX(desiredBox), NSMinY(desiredBox) -(24.0 * scaleFactor), desiredBox.size.width, (12.0 *scaleFactor));
 		[[NSColor whiteColor] set];
 		[NSBezierPath strokeRect: progressBox];
 		progressBox.size.width *= [self currTrackPercentage];
@@ -164,7 +166,8 @@
 		NS_ENDHANDLER
 		[self setNeedsDisplay: YES];
 		
-		int		availWidth = [self bounds].size.width -420;
+		CGFloat	scaleFactor = [self bounds].size.height / 768.0;
+		int		availWidth = [self bounds].size.width -(420.0 * scaleFactor);
 		float	leftMin = 10;
 		if( [self currTrackLyrics] && [[self currTrackLyrics] length] > 0 )
 		{
@@ -173,7 +176,7 @@
 		}
 		
 		imagePos = NSMakePoint( leftMin +(rand() % availWidth),
-								10 +(rand() % ((int)[self bounds].size.height -420)) );
+								10 +(rand() % ((int)([self bounds].size.height -(420.0 * scaleFactor)))) );
 	NS_HANDLER
 		NSLog( @"iTunesCantComplain: Error %@", [localException reason] );
 	NS_ENDHANDLER
