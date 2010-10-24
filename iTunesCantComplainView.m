@@ -99,14 +99,25 @@
 			[[self currTrackArt] drawInRect: desiredBox fromRect: NSZeroRect operation: NSCompositeSourceAtop fraction: 1.0];
 		}
 		
+//		if( desiredBox.size.width <= 100.0 )
+//		{
+//			desiredBox.size.height = 300.0f * scaleFactor;
+//			desiredBox.size.width = 300.0f * scaleFactor;
+//			[[NSColor colorWithCalibratedWhite: 1.0 alpha: 0.5] set];
+//			NSRectFill(desiredBox);
+//		}
+		
+		NSLog( @"iTunesCantComplain: %s coverArtSize = %@", __PRETTY_FUNCTION__, NSStringFromSize( desiredBox.size ) );
+		
 		[currTrackName drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (390.0f * scaleFactor)) withAttributes: bigAttrs];
 		[currTrackArtist drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (370.0f * scaleFactor)) withAttributes: smAttrs];
 		[currTrackAlbum drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (340.0f * scaleFactor)) withAttributes: tinyAttrs];
 		
 		// Indicate playback progress:
 		NSRect		progressBox = NSMakeRect(NSMinX(desiredBox), NSMinY(desiredBox) -(24.0 * scaleFactor), desiredBox.size.width, (12.0 *scaleFactor));
+		[[NSColor colorWithCalibratedWhite: 1.0 alpha: 0.3] set];
+		[NSBezierPath fillRect: progressBox];
 		[[NSColor whiteColor] set];
-		[NSBezierPath strokeRect: progressBox];
 		progressBox.size.width *= [self currTrackPercentage];
 		[NSBezierPath fillRect: progressBox];
 		
@@ -118,7 +129,7 @@
 			[currTrackLyrics drawAtPoint: lyricsPos withAttributes: paleAttrs];
 		}
 	NS_HANDLER
-		NSLog( @"iTunesCantComplain: Error %@", [localException reason] );
+		NSLog( @"iTunesCantComplain: %s Error %@", __PRETTY_FUNCTION__, [localException reason] );
 	NS_ENDHANDLER
 }
 
@@ -144,12 +155,17 @@
 		iTunesApplication*	itunes = [SBApplication applicationWithBundleIdentifier: @"com.apple.iTunes"];
 		iTunesTrack*		currTrack = [itunes currentTrack];
 		NSArray*			theImages = [[currTrack artworks] get];
+		NSString*			imgPath = [[NSBundle bundleForClass: [self class]] pathForImageResource: @"NoAlbumArt"];
+		NSImage*			noAlbumArt = [[[NSImage alloc] initWithContentsOfFile: imgPath] autorelease];
 		
 		NS_DURING
-			[self setCurrTrackArt: [(iTunesArtwork*)[theImages objectAtIndex: 0] data]];
+			if( [theImages count] > 0 )
+				[self setCurrTrackArt: [(iTunesArtwork*)[theImages objectAtIndex: 0] data]];
+			else
+				[self setCurrTrackArt: noAlbumArt];
 		NS_HANDLER
-			[self setCurrTrackArt: nil];
-			NSLog( @"iTunesCantComplain: Error %@", [localException reason] );
+			[self setCurrTrackArt: noAlbumArt];
+			NSLog( @"iTunesCantComplain: %s(1) Error %@", __PRETTY_FUNCTION__, [localException reason] );
 		NS_ENDHANDLER
 		[self setCurrTrackArtist: [currTrack artist]];
 		[self setCurrTrackAlbum: [currTrack album]];
@@ -162,7 +178,7 @@
 			[self setCurrTrackLyrics: [currTrack lyrics]];
 		NS_HANDLER
 			[self setCurrTrackLyrics: nil];
-			NSLog( @"iTunesCantComplain: Error %@", [localException reason] );
+			NSLog( @"iTunesCantComplain: %s(2) Error %@", __PRETTY_FUNCTION__, [localException reason] );
 		NS_ENDHANDLER
 		[self setNeedsDisplay: YES];
 		
@@ -178,7 +194,7 @@
 		imagePos = NSMakePoint( leftMin +(rand() % availWidth),
 								10 +(rand() % ((int)([self bounds].size.height -(420.0 * scaleFactor)))) );
 	NS_HANDLER
-		NSLog( @"iTunesCantComplain: Error %@", [localException reason] );
+		NSLog( @"iTunesCantComplain: %s(3) Error %@", __PRETTY_FUNCTION__, [localException reason] );
 	NS_ENDHANDLER
 }
 
