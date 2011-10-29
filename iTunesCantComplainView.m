@@ -69,35 +69,46 @@
 {
     [super drawRect: rect];
 
-	CGFloat		scaleFactor = [self bounds].size.height / 768.0;
+	CGFloat			scaleFactor = [self bounds].size.height / 768.0;
+	NSDictionary*	bigAttrs = nil;
+	NSDictionary*	smAttrs = nil;
+	NSDictionary*	tinyAttrs = nil;
+	NSDictionary*	paleAttrs = nil;
 	
 	NS_DURING
-		NSDictionary*	bigAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
+		bigAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
 										[NSFont boldSystemFontOfSize: 24 * scaleFactor], NSFontAttributeName,
 										[NSColor whiteColor], NSForegroundColorAttributeName,
 										nil];
-		NSDictionary*	smAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
+		smAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
 										[NSFont boldSystemFontOfSize: 18 * scaleFactor], NSFontAttributeName,
 										[NSColor whiteColor], NSForegroundColorAttributeName,
 										nil];
-		NSDictionary*	tinyAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
+		tinyAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
 										[NSFont systemFontOfSize: 18 * scaleFactor], NSFontAttributeName,
 										[NSColor whiteColor], NSForegroundColorAttributeName,
 										nil];
-		NSDictionary*	paleAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
+		paleAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
 										[NSFont systemFontOfSize: 18 * scaleFactor], NSFontAttributeName,
 										[[NSColor lightGrayColor] colorWithAlphaComponent: 0.7], NSForegroundColorAttributeName,
 										nil];
-		
+	NS_HANDLER
+		NSLog( @"iTunesCantComplain: %s(1) Error %@", __PRETTY_FUNCTION__, [localException reason] );
+	NS_ENDHANDLER
+	
+	NSRect	desiredBox = { 0 };
+	NS_DURING
 		// Draw cover image with track info:
-		NSRect	desiredBox = NSMakeRect(imagePos.x,imagePos.y,0,0);
-		if( [self currTrackArt] )
+		desiredBox = NSMakeRect(imagePos.x,imagePos.y,0,0);
+		if( [self currTrackArt] && [[self currTrackArt] isKindOfClass: [NSImage class]] )
 		{
 			desiredBox.size = [[self currTrackArt] size];
 			desiredBox.size.width *= ((330.0f * scaleFactor) / desiredBox.size.height);
 			desiredBox.size.height = (330.0f * scaleFactor);
 			[[self currTrackArt] drawInRect: desiredBox fromRect: NSZeroRect operation: NSCompositeSourceAtop fraction: 1.0];
 		}
+		else if( [self currTrackArt] != nil )
+			NSLog( @"curr track art = %@", [self currTrackArt] );
 		
 //		if( desiredBox.size.width <= 100.0 )
 //		{
@@ -108,7 +119,11 @@
 //		}
 		
 		NSLog( @"iTunesCantComplain: %s coverArtSize = %@", __PRETTY_FUNCTION__, NSStringFromSize( desiredBox.size ) );
-		
+	NS_HANDLER
+		NSLog( @"iTunesCantComplain: %s(2) Error %@", __PRETTY_FUNCTION__, [localException reason] );
+	NS_ENDHANDLER
+	
+	NS_DURING	
 		[currTrackName drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (390.0f * scaleFactor)) withAttributes: bigAttrs];
 		[currTrackArtist drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (370.0f * scaleFactor)) withAttributes: smAttrs];
 		[currTrackAlbum drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (340.0f * scaleFactor)) withAttributes: tinyAttrs];
@@ -122,14 +137,14 @@
 		[NSBezierPath fillRect: progressBox];
 		
 		// Draw lyrics, pale and transparent on top of any track image:
-		if( currTrackLyrics )
+		if( currTrackLyrics && [currTrackLyrics isKindOfClass: [NSString class]] )
 		{
-			NSPoint		lyricsPos = NSMakePoint(10,10);
-			lyricsPos.y -= ([currTrackLyrics sizeWithAttributes: paleAttrs].height -[self bounds].size.height +20) * (1.0 -[self currTrackPercentage]);
+			NSPoint		lyricsPos = NSMakePoint(10,100);
+			lyricsPos.y -= ([currTrackLyrics sizeWithAttributes: paleAttrs].height -[self bounds].size.height +20 +200) * (1.0 -[self currTrackPercentage]);
 			[currTrackLyrics drawAtPoint: lyricsPos withAttributes: paleAttrs];
 		}
 	NS_HANDLER
-		NSLog( @"iTunesCantComplain: %s Error %@", __PRETTY_FUNCTION__, [localException reason] );
+		NSLog( @"iTunesCantComplain: %s(3) Error %@", __PRETTY_FUNCTION__, [localException reason] );
 	NS_ENDHANDLER
 }
 
@@ -160,7 +175,12 @@
 		
 		NS_DURING
 			if( [theImages count] > 0 )
-				[self setCurrTrackArt: [(iTunesArtwork*)[theImages objectAtIndex: 0] data]];
+			{
+				NSImage	*	possibleImage = [(iTunesArtwork*)[theImages objectAtIndex: 0] data];
+				if( [possibleImage isKindOfClass: [NSAppleEventDescriptor class]] )
+					possibleImage = [[[NSImage alloc] initWithData: [(NSAppleEventDescriptor*)possibleImage data]] autorelease];
+				[self setCurrTrackArt: possibleImage];
+			}
 			else
 				[self setCurrTrackArt: noAlbumArt];
 		NS_HANDLER
