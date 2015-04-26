@@ -20,11 +20,11 @@
 	float			currTrackPercentage;
 }
 
-@property(retain)	NSImage* currTrackArt;
-@property(retain)	NSString* currTrackArtist;
-@property(retain)	NSString* currTrackAlbum;
-@property(retain)	NSString* currTrackName;
-@property(retain)	NSString* currTrackLyrics;
+@property(strong)	NSImage* currTrackArt;
+@property(strong)	NSString* currTrackArtist;
+@property(strong)	NSString* currTrackAlbum;
+@property(strong)	NSString* currTrackName;
+@property(strong)	NSString* currTrackLyrics;
 @property			float currTrackPercentage;
 @property			NSPoint imagePos;
 

@@ -44,13 +44,7 @@
 											name: @"com.apple.iTunes.playerInfo"
 											object: nil];
 	
-	[currTrackArt release];
-	[currTrackArtist release];
-	[currTrackAlbum release];
-	[currTrackName release];
-	[currTrackLyrics release];
 	
-	[super dealloc];
 }
 
 - (void)startAnimation
@@ -171,14 +165,14 @@
 		iTunesTrack*		currTrack = [itunes currentTrack];
 		NSArray*			theImages = [[currTrack artworks] get];
 		NSString*			imgPath = [[NSBundle bundleForClass: [self class]] pathForImageResource: @"NoAlbumArt"];
-		NSImage*			noAlbumArt = [[[NSImage alloc] initWithContentsOfFile: imgPath] autorelease];
+		NSImage*			noAlbumArt = [[NSImage alloc] initWithContentsOfFile: imgPath];
 		
 		NS_DURING
 			if( [theImages count] > 0 )
 			{
 				NSImage	*	possibleImage = [(iTunesArtwork*)[theImages objectAtIndex: 0] data];
 				if( [possibleImage isKindOfClass: [NSAppleEventDescriptor class]] )
-					possibleImage = [[[NSImage alloc] initWithData: [(NSAppleEventDescriptor*)possibleImage data]] autorelease];
+					possibleImage = [[NSImage alloc] initWithData: [(NSAppleEventDescriptor*)possibleImage data]];
 				[self setCurrTrackArt: possibleImage];
 			}
 			else
