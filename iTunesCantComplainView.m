@@ -101,9 +101,9 @@
 			desiredBox.size.height = (330.0f * scaleFactor);
 			[[self currTrackArt] drawInRect: desiredBox fromRect: NSZeroRect operation: NSCompositeSourceAtop fraction: 1.0];
 		}
-		else if( [self currTrackArt] != nil )
-			NSLog( @"curr track art = %@", [self currTrackArt] );
-		
+//		else if( [self currTrackArt] != nil )
+//			NSLog( @"curr track art = %@", [self currTrackArt] );
+	
 //		if( desiredBox.size.width <= 100.0 )
 //		{
 //			desiredBox.size.height = 300.0f * scaleFactor;
@@ -112,7 +112,7 @@
 //			NSRectFill(desiredBox);
 //		}
 		
-		NSLog( @"iTunesCantComplain: %s coverArtSize = %@", __PRETTY_FUNCTION__, NSStringFromSize( desiredBox.size ) );
+//		NSLog( @"iTunesCantComplain: %s coverArtSize = %@", __PRETTY_FUNCTION__, NSStringFromSize( desiredBox.size ) );
 	NS_HANDLER
 		NSLog( @"iTunesCantComplain: %s(2) Error %@", __PRETTY_FUNCTION__, [localException reason] );
 	NS_ENDHANDLER
@@ -212,7 +212,7 @@
 		float		duration = [currTrack duration];
 		float		percentage = [itunes playerPosition] / duration;
 		[self setCurrTrackPercentage: (duration > 0) ? percentage : -1.0];
-		NSLog(@"duration: %f pos: %ld percentage: %f", [currTrack duration], (long)[itunes playerPosition], percentage);
+//		NSLog(@"duration: %f pos: %ld percentage: %f", [currTrack duration], (long)[itunes playerPosition], percentage);
 	
 		// If we don't have a regular track, but a stream, Album will be NIL.
 		//	Extract equivalent info from the stream info:
