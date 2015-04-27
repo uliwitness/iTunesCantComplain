@@ -123,12 +123,15 @@
 		[currTrackAlbum drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (340.0f * scaleFactor)) withAttributes: tinyAttrs];
 		
 		// Indicate playback progress:
-		NSRect		progressBox = NSMakeRect(NSMinX(desiredBox), NSMinY(desiredBox) -(24.0 * scaleFactor), desiredBox.size.width, (12.0 *scaleFactor));
-		[[NSColor colorWithCalibratedWhite: 1.0 alpha: 0.3] set];
-		[NSBezierPath fillRect: progressBox];
-		[[NSColor whiteColor] set];
-		progressBox.size.width *= [self currTrackPercentage];
-		[NSBezierPath fillRect: progressBox];
+		if( self.currTrackPercentage < 0 )
+		{
+			NSRect		progressBox = NSMakeRect(NSMinX(desiredBox), NSMinY(desiredBox) -(24.0 * scaleFactor), desiredBox.size.width, (12.0 *scaleFactor));
+			[[NSColor colorWithCalibratedWhite: 1.0 alpha: 0.3] set];
+			[NSBezierPath fillRect: progressBox];
+			[[NSColor whiteColor] set];
+			progressBox.size.width *= [self currTrackPercentage];
+			[NSBezierPath fillRect: progressBox];
+		}
 		
 		// Draw lyrics, pale and transparent on top of any track image:
 		if( currTrackLyrics && [currTrackLyrics isKindOfClass: [NSString class]] )
@@ -166,7 +169,8 @@
 		NSArray*			theImages = [[currTrack artworks] get];
 		NSString*			imgPath = [[NSBundle bundleForClass: [self class]] pathForImageResource: @"NoAlbumArt"];
 		NSImage*			noAlbumArt = [[NSImage alloc] initWithContentsOfFile: imgPath];
-		
+	
+		// Grab cover art, if we have it:
 		NS_DURING
 			if( [theImages count] > 0 )
 			{
@@ -181,19 +185,68 @@
 			[self setCurrTrackArt: noAlbumArt];
 			NSLog( @"iTunesCantComplain: %s(1) Error %@", __PRETTY_FUNCTION__, [localException reason] );
 		NS_ENDHANDLER
-		[self setCurrTrackArtist: [currTrack artist]];
-		[self setCurrTrackAlbum: [currTrack album]];
-		[self setCurrTrackName: [currTrack name]];
-		float		duration = [currTrack finish] -[currTrack start];
-		float		percentage = [itunes playerPosition] -[currTrack start];
-		percentage /= duration;
-		[self setCurrTrackPercentage: percentage];
+	
+		// Grab artist, album etc:
+		NSString*	artist = [currTrack artist];
+		NSString*	album = [currTrack album];
+		NSString*	show = [currTrack show];
+		if( !show || ![show length] )
+		{
+			show = [currTrack objectDescription];    // The description of the track.
+		}
+		if( !show || ![show length] )
+		{
+			show = [currTrack name]; // The name of the track.
+		}
+
 		NS_DURING
 			[self setCurrTrackLyrics: [currTrack lyrics]];
 		NS_HANDLER
 			[self setCurrTrackLyrics: nil];
 			NSLog( @"iTunesCantComplain: %s(2) Error %@", __PRETTY_FUNCTION__, [localException reason] );
 		NS_ENDHANDLER
+		NSString *currentStreamTitle = [itunes currentStreamTitle];
+		NSString *currentStreamURL = [itunes currentStreamURL];
+	
+		// Determine where in the song we are:
+		float		duration = [currTrack duration];
+		float		percentage = [itunes playerPosition] / duration;
+		[self setCurrTrackPercentage: (duration > 0) ? percentage : -1];
+		NSLog(@"duration: %f pos: %ld percentage: %f", [currTrack duration], (long)[itunes playerPosition], percentage);
+	
+		// If we don't have a regular track, but a stream, Album will be NIL.
+		//	Extract equivalent info from the stream info:
+		if( !album || ![album length] )
+		{
+			if( currentStreamTitle && [currentStreamTitle length] )
+			{
+				album = show;
+				NSArray *array = [currentStreamTitle componentsSeparatedByString:@" - "];
+				if( [array count] == 2 )
+				{
+					artist = array[0];
+					show = array[1];
+				}
+				else
+				{
+					// the name of the current song in the playing stream (provided by streaming server)
+					show = currentStreamTitle;
+				}
+			}
+		}
+	
+		// If we're missing important information, use the URL for the most important one
+		if( !show )
+			show = currentStreamURL;
+		else if( !album )
+			album = currentStreamURL;
+		else if( !artist )
+			artist = currentStreamURL;
+	
+		[self setCurrTrackArtist: artist];
+		[self setCurrTrackAlbum: album];
+		[self setCurrTrackName: show];
+	
 		[self setNeedsDisplay: YES];
 		
 		CGFloat	scaleFactor = [self bounds].size.height / 768.0;
