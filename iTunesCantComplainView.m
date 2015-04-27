@@ -123,7 +123,7 @@
 		[currTrackAlbum drawAtPoint: NSMakePoint(desiredBox.origin.x,desiredBox.origin.y + (340.0f * scaleFactor)) withAttributes: tinyAttrs];
 		
 		// Indicate playback progress:
-		if( self.currTrackPercentage < 0 )
+		if( self.currTrackPercentage >= 0 )
 		{
 			NSRect		progressBox = NSMakeRect(NSMinX(desiredBox), NSMinY(desiredBox) -(24.0 * scaleFactor), desiredBox.size.width, (12.0 *scaleFactor));
 			[[NSColor colorWithCalibratedWhite: 1.0 alpha: 0.3] set];
@@ -211,7 +211,7 @@
 		// Determine where in the song we are:
 		float		duration = [currTrack duration];
 		float		percentage = [itunes playerPosition] / duration;
-		[self setCurrTrackPercentage: (duration > 0) ? percentage : -1];
+		[self setCurrTrackPercentage: (duration > 0) ? percentage : -1.0];
 		NSLog(@"duration: %f pos: %ld percentage: %f", [currTrack duration], (long)[itunes playerPosition], percentage);
 	
 		// If we don't have a regular track, but a stream, Album will be NIL.
